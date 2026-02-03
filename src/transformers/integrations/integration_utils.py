@@ -2278,6 +2278,12 @@ class SwanLabCallback(TrainerCallback):
         - **SWANLAB_API_HOST** (`str`, *optional*, defaults to `None`):
             API address for the SwanLab cloud environment for private version (its free)
 
+        - **SWANLAB_RUN_ID** (`str`, *optional*, defaults to `None`):
+            Experiment ID to resume a previous run. Use with `SWANLAB_RESUME` to continue an existing experiment.
+
+        - **SWANLAB_RESUME** (`str`, *optional*, defaults to `None`):
+            Resume mode (`"must"`, `"allow"`, `"never"`). Defaults to `"allow"` when `resume_from_checkpoint` is used.
+
         """
         self._initialized = True
 
@@ -2300,6 +2306,16 @@ class SwanLabCallback(TrainerCallback):
             elif trial_name is not None:
                 init_args["experiment_name"] = trial_name
             init_args["project"] = os.getenv("SWANLAB_PROJECT", None)
+
+            run_id = os.getenv("SWANLAB_RUN_ID", None)
+            if run_id is not None:
+                init_args["id"] = run_id
+
+            resume = os.getenv("SWANLAB_RESUME", None)
+            if resume is not None:
+                init_args["resume"] = resume
+            elif args.resume_from_checkpoint:
+                init_args["resume"] = "allow"
 
             if self._swanlab.get_run() is None:
                 self._swanlab.init(
